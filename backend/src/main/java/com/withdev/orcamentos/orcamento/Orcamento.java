@@ -106,6 +106,9 @@ public class Orcamento {
 
     public void definirDesconto(BigDecimal descontoPercentual) {
         exigirRascunho();
+        if (descontoPercentual != null) {
+            descontoPercentual = descontoPercentual.setScale(2, RoundingMode.HALF_UP);
+        }
         this.descontoPercentual = descontoPercentual;
         recalcular();
     }

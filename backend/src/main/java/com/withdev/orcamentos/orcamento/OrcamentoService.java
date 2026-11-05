@@ -29,9 +29,20 @@ public class OrcamentoService {
         this.servicoService = servicoService;
     }
 
-    public List<OrcamentoResponse> listar() {
+    public List<OrcamentoResponse> listar(StatusOrcamento status, Long clienteId) {
+        List<Orcamento> encontrados;
+        if (status != null && clienteId != null) {
+            encontrados = repository.findByStatusAndClienteId(status, clienteId);
+        } else if (status != null) {
+            encontrados = repository.findByStatus(status);
+        } else if (clienteId != null) {
+            encontrados = repository.findByClienteId(clienteId);
+        } else {
+            encontrados = repository.findAll();
+        }
+
         List<OrcamentoResponse> resposta = new ArrayList<>();
-        for (Orcamento orcamento : repository.findAll()) {
+        for (Orcamento orcamento : encontrados) {
             resposta.add(OrcamentoResponse.from(orcamento));
         }
         return resposta;

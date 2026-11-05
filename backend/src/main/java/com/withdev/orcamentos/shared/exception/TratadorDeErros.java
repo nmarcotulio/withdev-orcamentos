@@ -6,6 +6,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,6 +25,14 @@ public class TratadorDeErros {
     public ProblemDetail conflito(ConflitoException ex) {
         ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problema.setTitle("Conflito");
+        return problema;
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail tipoInvalido(MethodArgumentTypeMismatchException ex) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Valor invalido para o parametro '" + ex.getName() + "': " + ex.getValue());
+        problema.setTitle("Parametro invalido");
         return problema;
     }
 
