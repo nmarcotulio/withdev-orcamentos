@@ -98,6 +98,12 @@ public class Orcamento {
         recalcular();
     }
 
+    public void limparItens() {
+        exigirRascunho();
+        itens.clear();
+        recalcular();
+    }
+
     public void definirDesconto(BigDecimal descontoPercentual) {
         exigirRascunho();
         this.descontoPercentual = descontoPercentual;

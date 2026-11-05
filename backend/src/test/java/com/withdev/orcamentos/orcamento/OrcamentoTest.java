@@ -122,6 +122,25 @@ class OrcamentoTest {
     }
 
     @Test
+    void limparItensZeraTotal() {
+        Orcamento orcamento = new Orcamento(cliente, null);
+        orcamento.adicionarItem(site, 2);
+
+        orcamento.limparItens();
+
+        assertEquals(0, orcamento.getItens().size());
+        assertEquals(new BigDecimal("0.00"), orcamento.getTotal());
+    }
+
+    @Test
+    void naoLimpaItensForaDeRascunho() {
+        Orcamento orcamento = orcamentoEnviado();
+
+        assertThrows(ConflitoException.class, orcamento::limparItens);
+        assertEquals(1, orcamento.getItens().size());
+    }
+
+    @Test
     void rascunhoPodeSerExcluido() {
         Orcamento orcamento = new Orcamento(cliente, null);
 
