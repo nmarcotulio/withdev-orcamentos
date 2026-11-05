@@ -1,6 +1,8 @@
 package com.withdev.orcamentos.orcamento;
 
 import com.withdev.orcamentos.cliente.Cliente;
+import com.withdev.orcamentos.servico.Servico;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,18 +12,23 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "orcamentos")
 public class Orcamento {
 
     private static final int VALIDADE_PADRAO_DIAS = 15;
+    private static final BigDecimal CEM = new BigDecimal("100");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,6 +50,9 @@ public class Orcamento {
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
+
+    @OneToMany(mappedBy = "orcamento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemOrcamento> itens = new ArrayList<>();
 
     @Column(nullable = false)
     private int validadeDias;
@@ -79,6 +89,31 @@ public class Orcamento {
             throw new TransicaoInvalidaException(status, novo);
         }
         this.status = novo;
+    }
+
+    public void adicionarItem(Servico servico, int quantidade) {
+        itens.add(new ItemOrcamento(this, servico, quantidade));
+        recalcular();
+    }
+
+    public void definirDesconto(BigDecimal descontoPercentual) {
+        this.descontoPercentual = descontoPercentual;
+        recalcular();
+    }
+
+    private void recalcular() {
+        BigDecimal soma = BigDecimal.ZERO;
+        for (ItemOrcamento item : itens) {
+            soma = soma.add(item.getSubtotal());
+        }
+        this.subtotal = soma.setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal desconto = BigDecimal.ZERO;
+        if (descontoPercentual != null) {
+            desconto = subtotal.multiply(descontoPercentual)
+                    .divide(CEM, 2, RoundingMode.HALF_UP);
+        }
+        this.total = subtotal.subtract(desconto).setScale(2, RoundingMode.HALF_UP);
     }
 
     public Long getId() {
@@ -123,5 +158,9 @@ public class Orcamento {
 
     public String getObservacoes() {
         return observacoes;
+    }
+
+    public List<ItemOrcamento> getItens() {
+        return List.copyOf(itens);
     }
 }
