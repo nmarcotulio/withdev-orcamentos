@@ -2,10 +2,13 @@ package com.withdev.orcamentos.orcamento;
 
 import com.withdev.orcamentos.cliente.Cliente;
 import com.withdev.orcamentos.servico.Servico;
+import com.withdev.orcamentos.shared.exception.ConflitoException;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -75,5 +78,60 @@ class OrcamentoTest {
         assertEquals(new BigDecimal("2000.00"),
                 orcamento.getItens().get(0).getPrecoUnitario());
         assertEquals(new BigDecimal("2000.00"), orcamento.getTotal());
+    }
+
+    private Orcamento orcamentoEnviado() {
+        Orcamento orcamento = new Orcamento(cliente, null);
+        orcamento.adicionarItem(site, 1);
+        orcamento.enviar();
+        return orcamento;
+    }
+
+    @Test
+    void enviarSemItensLancaErro() {
+        Orcamento orcamento = new Orcamento(cliente, null);
+
+        assertThrows(ConflitoException.class, orcamento::enviar);
+        assertEquals(StatusOrcamento.RASCUNHO, orcamento.getStatus());
+    }
+
+    @Test
+    void enviarPreencheDataDeEnvioEValidade() {
+        Orcamento orcamento = orcamentoEnviado();
+
+        assertEquals(StatusOrcamento.ENVIADO, orcamento.getStatus());
+        assertEquals(LocalDate.now(), orcamento.getDataEnvio());
+        assertEquals(LocalDate.now().plusDays(15), orcamento.getDataValidade());
+    }
+
+    @Test
+    void naoAdicionaItemForaDeRascunho() {
+        Orcamento orcamento = orcamentoEnviado();
+
+        assertThrows(ConflitoException.class, () -> orcamento.adicionarItem(manutencao, 1));
+        assertEquals(1, orcamento.getItens().size());
+    }
+
+    @Test
+    void naoMudaDescontoForaDeRascunho() {
+        Orcamento orcamento = orcamentoEnviado();
+
+        assertThrows(ConflitoException.class,
+                () -> orcamento.definirDesconto(new BigDecimal("50")));
+        assertEquals(new BigDecimal("2000.00"), orcamento.getTotal());
+    }
+
+    @Test
+    void rascunhoPodeSerExcluido() {
+        Orcamento orcamento = new Orcamento(cliente, null);
+
+        assertDoesNotThrow(orcamento::validarExclusao);
+    }
+
+    @Test
+    void enviadoNaoPodeSerExcluido() {
+        Orcamento orcamento = orcamentoEnviado();
+
+        assertThrows(ConflitoException.class, orcamento::validarExclusao);
     }
 }

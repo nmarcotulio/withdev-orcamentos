@@ -2,6 +2,7 @@ package com.withdev.orcamentos.orcamento;
 
 import com.withdev.orcamentos.cliente.Cliente;
 import com.withdev.orcamentos.servico.Servico;
+import com.withdev.orcamentos.shared.exception.ConflitoException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -92,13 +93,34 @@ public class Orcamento {
     }
 
     public void adicionarItem(Servico servico, int quantidade) {
+        exigirRascunho();
         itens.add(new ItemOrcamento(this, servico, quantidade));
         recalcular();
     }
 
     public void definirDesconto(BigDecimal descontoPercentual) {
+        exigirRascunho();
         this.descontoPercentual = descontoPercentual;
         recalcular();
+    }
+
+    public void enviar() {
+        if (itens.isEmpty()) {
+            throw new ConflitoException("Orcamento precisa de pelo menos 1 item para ser enviado");
+        }
+        mudarStatus(StatusOrcamento.ENVIADO);
+        this.dataEnvio = LocalDate.now();
+        this.dataValidade = dataEnvio.plusDays(validadeDias);
+    }
+
+    public void validarExclusao() {
+        exigirRascunho();
+    }
+
+    private void exigirRascunho() {
+        if (status != StatusOrcamento.RASCUNHO) {
+            throw new ConflitoException("Orcamento so pode ser alterado ou excluido em RASCUNHO (status atual: " + status + ")");
+        }
     }
 
     private void recalcular() {
