@@ -153,4 +153,48 @@ class OrcamentoTest {
 
         assertThrows(ConflitoException.class, orcamento::validarExclusao);
     }
+
+    @Test
+    void enviadoPodeSerAprovado() {
+        Orcamento orcamento = orcamentoEnviado();
+
+        orcamento.aprovar();
+
+        assertEquals(StatusOrcamento.APROVADO, orcamento.getStatus());
+    }
+
+    @Test
+    void rascunhoNaoPodeSerAprovado() {
+        Orcamento orcamento = new Orcamento(cliente, null);
+
+        assertThrows(TransicaoInvalidaException.class, orcamento::aprovar);
+        assertEquals(StatusOrcamento.RASCUNHO, orcamento.getStatus());
+    }
+
+    @Test
+    void aprovadoNaoPodeSerRecusado() {
+        Orcamento orcamento = orcamentoEnviado();
+        orcamento.aprovar();
+
+        assertThrows(TransicaoInvalidaException.class, orcamento::recusar);
+        assertEquals(StatusOrcamento.APROVADO, orcamento.getStatus());
+    }
+
+    @Test
+    void enviadoPodeExpirar() {
+        Orcamento orcamento = orcamentoEnviado();
+
+        orcamento.expirar();
+
+        assertEquals(StatusOrcamento.EXPIRADO, orcamento.getStatus());
+    }
+
+    @Test
+    void aprovadoNaoPodeExpirar() {
+        Orcamento orcamento = orcamentoEnviado();
+        orcamento.aprovar();
+
+        assertThrows(TransicaoInvalidaException.class, orcamento::expirar);
+        assertEquals(StatusOrcamento.APROVADO, orcamento.getStatus());
+    }
 }

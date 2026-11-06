@@ -122,6 +122,18 @@ public class Orcamento {
         this.dataValidade = dataEnvio.plusDays(validadeDias);
     }
 
+    public void aprovar() {
+        mudarStatus(StatusOrcamento.APROVADO);
+    }
+
+    public void recusar() {
+        mudarStatus(StatusOrcamento.RECUSADO);
+    }
+
+    public void expirar() {
+        mudarStatus(StatusOrcamento.EXPIRADO);
+    }
+
     public void validarExclusao() {
         exigirRascunho();
     }

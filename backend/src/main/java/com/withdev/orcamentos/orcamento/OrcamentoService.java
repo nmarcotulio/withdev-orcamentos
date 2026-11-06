@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +71,27 @@ public class OrcamentoService {
         Orcamento orcamento = buscarEntidade(id);
         orcamento.enviar();
         return OrcamentoResponse.from(repository.save(orcamento));
+    }
+
+    public OrcamentoResponse aprovar(Long id) {
+        Orcamento orcamento = buscarEntidade(id);
+        orcamento.aprovar();
+        return OrcamentoResponse.from(repository.save(orcamento));
+    }
+
+    public OrcamentoResponse recusar(Long id) {
+        Orcamento orcamento = buscarEntidade(id);
+        orcamento.recusar();
+        return OrcamentoResponse.from(repository.save(orcamento));
+    }
+
+    public int expirarVencidos(LocalDate hoje) {
+        List<Orcamento> vencidos = repository.findByStatusAndDataValidadeBefore(StatusOrcamento.ENVIADO, hoje);
+        for (Orcamento orcamento : vencidos) {
+            orcamento.expirar();
+        }
+        repository.saveAll(vencidos);
+        return vencidos.size();
     }
 
     public void excluir(Long id) {

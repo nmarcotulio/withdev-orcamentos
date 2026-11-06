@@ -53,6 +53,16 @@ public class OrcamentoController {
         return service.enviar(id);
     }
 
+    @PostMapping("/{id}/aprovar")
+    public OrcamentoResponse aprovar(@PathVariable Long id) {
+        return service.aprovar(id);
+    }
+
+    @PostMapping("/{id}/recusar")
+    public OrcamentoResponse recusar(@PathVariable Long id) {
+        return service.recusar(id);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         service.excluir(id);
